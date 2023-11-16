@@ -1,20 +1,19 @@
 version: '3'
+
+networks:
+  balance-network:
+    driver: bridge
+
 services:
   loadbalance:
     image: nginx:alpine
     volumes:
       - ${PWD}/docker-compose/nginx_load_balance/conf.d:/etc/nginx/conf.d
+      - ${PWD}/laravel-nodes:/var/www/node1
+      - ${PWD}/laravel-nodes:/var/www/node2
+      - ${PWD}/laravel-nodes:/var/www/node3
     ports:
       - "8000:80"
-    networks:
-      - balance-network
-
-  nginx_node_1:
-    image: nginx:alpine
-    container_name: nginx_node_1
-    volumes:
-      - ${PWD}/docker-compose/nginx_node_1/conf.d:/etc/nginx/conf.d
-      - ${PWD}/laravel-nodes:/var/www
     networks:
       - balance-network
 
@@ -24,20 +23,11 @@ services:
         user: ${SO_DOCKER_USER}
         uid: 1000
       context: ${PWD}/docker-compose/laravel-nodes
-    working_dir: /var/www
+    working_dir: /var/www/node1
     volumes:
       - ${PWD}/docker-compose/laravel-nodes/php/conf.d/opcache.ini:/usr/local/etc/php/conf.d/10-opcache.ini:ro
       - ${PWD}/docker-compose/laravel-nodes/php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/99-opcache.ini:ro
-      - ${PWD}/laravel-nodes:/var/www
-    networks:
-      - balance-network
-
-  nginx_node_2:
-    image: nginx:alpine
-    container_name: nginx_node_2
-    volumes:
-      - ${PWD}/docker-compose/nginx_node_2/conf.d:/etc/nginx/conf.d
-      - ${PWD}/laravel-nodes:/var/www
+      - ${PWD}/laravel-nodes:/var/www/node1
     networks:
       - balance-network
 
@@ -47,17 +37,25 @@ services:
         user: ${SO_DOCKER_USER}
         uid: 1000
       context: ${PWD}/docker-compose/laravel-nodes
-    working_dir: /var/www
+    working_dir: /var/www/node2
     volumes:
       - ${PWD}/docker-compose/laravel-nodes/php/conf.d/opcache.ini:/usr/local/etc/php/conf.d/10-opcache.ini:ro
       - ${PWD}/docker-compose/laravel-nodes/php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/99-opcache.ini:ro
-      - ${PWD}/laravel-nodes:/var/www
+      - ${PWD}/laravel-nodes:/var/www/node2
     networks:
       - balance-network
 
-networks:
-  balance-network:
-    driver: bridge
+  node_3:
+    build:
+      args:
+        user: ${SO_DOCKER_USER}
+        uid: 1000
+      context: ${PWD}/docker-compose/laravel-nodes
+    working_dir: /var/www/node3
+    volumes:
+      - ${PWD}/docker-compose/laravel-nodes/php/conf.d/opcache.ini:/usr/local/etc/php/conf.d/10-opcache.ini:ro
+      - ${PWD}/docker-compose/laravel-nodes/php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/99-opcache.ini:ro
+      - ${PWD}/laravel-nodes:/var/www/node3
+    networks:
+      - balance-network
 
-volumes:
-  vendorLaravelNodes:
